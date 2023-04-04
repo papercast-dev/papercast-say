@@ -31,8 +31,8 @@ class SayProcessor(BaseProcessor):
         txtpath = str(txtpath)
         mp3path = str(mp3path)
         aiffpath = txtpath.replace("txt", "aiff")
-        if not aiffpath.parent.exists():
-            aiffpath.parent.mkdir(parents=True)
+        if not Path(aiffpath).parent.exists():
+            Path(aiffpath).parent.mkdir(parents=True)
         cmd1 = [
             "say",
             "-f",
