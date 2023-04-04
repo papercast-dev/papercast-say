@@ -4,12 +4,17 @@ from slugify import slugify
 from papercast.types import PathLike
 import subprocess
 import sys
+import os
 
 from papercast.base import BaseProcessor
 from papercast.production import Production
 
 
 class SayProcessor(BaseProcessor):
+
+    input_types = {"text": str, "title": str}
+    output_types = {"mp3_path": str}
+
     def __init__(self, txt_dir, mp3_dir) -> None:
         super().__init__()
 
@@ -22,21 +27,12 @@ class SayProcessor(BaseProcessor):
         if not sys.platform.startswith("darwin"):
             raise OSError("This processor only works on Mac OS X")
 
-    def input_types(self) -> Dict[str, Any]:
-        return {
-            "text": str,
-            "title": str,
-        }
-
-    def output_types(self) -> Dict[str, Any]:
-        return {
-            "mp3_path": str,
-        }
-
     def _narrate(self, txtpath: PathLike, mp3path: PathLike):
         txtpath = str(txtpath)
         mp3path = str(mp3path)
         aiffpath = txtpath.replace("txt", "aiff")
+        if not aiffpath.parent.exists():
+            aiffpath.parent.mkdir(parents=True)
         cmd1 = [
             "say",
             "-f",
@@ -48,6 +44,8 @@ class SayProcessor(BaseProcessor):
         self.logger.info(f"Starting conversion: {' '.join(cmd1)}")
         subprocess.call(cmd1)
         subprocess.call(cmd2)
+
+        os.remove(aiffpath)
 
     def process(self, input: Production, **kwargs) -> Production:
         file_stem = slugify(input.title)
